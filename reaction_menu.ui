@@ -16,7 +16,7 @@
   <layout class="QGridLayout" name="gridLayout_2">
    <item row="0" column="0">
     <layout class="QGridLayout" name="gridLayout">
-     <item row="5" column="1" colspan="3">
+     <item row="4" column="1" colspan="3">
       <widget class="QTextBrowser" name="text_browser">
        <property name="enabled">
         <bool>false</bool>
@@ -55,7 +55,7 @@ p, li { white-space: pre-wrap; }
        </property>
       </widget>
      </item>
-     <item row="7" column="2">
+     <item row="6" column="2">
       <layout class="QVBoxLayout" name="dialog_buttons">
        <item>
         <widget class="QPushButton" name="agree_b">
@@ -98,7 +98,7 @@ p, li { white-space: pre-wrap; }
        </item>
       </layout>
      </item>
-     <item row="7" column="1">
+     <item row="6" column="1">
       <spacer name="horizontalSpacer">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -111,7 +111,7 @@ p, li { white-space: pre-wrap; }
        </property>
       </spacer>
      </item>
-     <item row="7" column="3">
+     <item row="6" column="3">
       <spacer name="horizontalSpacer_2">
        <property name="orientation">
         <enum>Qt::Horizontal</enum>
@@ -137,7 +137,7 @@ p, li { white-space: pre-wrap; }
        </property>
       </spacer>
      </item>
-     <item row="8" column="2">
+     <item row="7" column="2">
       <layout class="QVBoxLayout" name="verticalLayout">
        <property name="topMargin">
         <number>0</number>
@@ -171,6 +171,24 @@ p, li { white-space: pre-wrap; }
         </widget>
        </item>
       </layout>
+     </item>
+     <item row="5" column="2">
+      <widget class="QLineEdit" name="input_p_id">
+       <property name="font">
+        <font>
+         <pointsize>19</pointsize>
+        </font>
+       </property>
+       <property name="text">
+        <string/>
+       </property>
+       <property name="alignment">
+        <set>Qt::AlignCenter</set>
+       </property>
+       <property name="placeholderText">
+        <string>please enter your participant ID</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

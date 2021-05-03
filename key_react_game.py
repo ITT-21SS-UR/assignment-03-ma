@@ -4,24 +4,44 @@
 
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore, uic
-from PyQt5.QtGui import QKeySequence
+from PyQt5.QtGui import QKeySequence, QIntValidator
 from PyQt5.QtWidgets import QDialog, QStackedWidget, QWidget
-from PyQt5.QtCore import QTimer,QDateTime
+from PyQt5.QtCore import QTimer, QDateTime
+import random
+import time
+import pandas as pd
+
+url_color_csv = "color_palatt_(ral_standard).csv"
+color_palette = None
 
 
-# test_layout, _ = uic.loadUiType("reaction_test.ui")
-#
-#
-# class ButtonTest(QWidget, test_layout):
-#
-#     def __init__(self, parent=None):
-#         super(ButtonTest, self).__init__(parent)
-#         self.setupUi(self)
+# class Test():
+#     def __init__(self):
+#         self.color_palette=None
+#         self.
+
+def create_test():
+    df = pd.read_csv(url_color_csv, index_col=3)
+    pd.set_option("display.max_rows", None, "display.max_columns", None)
+    df.head()
+    print(df)
+    print(random.randint(5, 100))
 
 
+def generate_table():
+    return
 
 
-
+def mapping_char(event):
+    char = QKeySequence(event.nativeVirtualKey()).toString()
+    if char in "ÀÞº":
+        mapping = {
+            "À": "Ö",
+            "Þ": "Ä",
+            "º": "Ü"
+        }
+        char = mapping.get(char)
+    return char
 
 
 class ButtonTestMenu(QDialog):
@@ -34,23 +54,23 @@ class ButtonTestMenu(QDialog):
         super().__init__()
         self.counter = 3
         self.text_content = ""
-        self.text_color = 'red'
+        self.text_color = "red"
+
+        self.p_id = 0
         self.test_started = False
         self.loading = False
         self.timer = QTimer()
         self.load_menu()
         self.initUI()
 
-
-
     def initUI(self):
         self.test_label.hide()
         self.cancel_b2.setEnabled(False)
+        self.agree_b.setEnabled(False)
         self.cancel_b2.hide()
         self.setWindowTitle('reaction_game')
-        self.resize(500, 450)
+        self.resize(800, 600)
         print("here")
-
 
     def load_menu(self):
         uic.loadUi("reaction_menu.ui", self)
@@ -58,7 +78,8 @@ class ButtonTestMenu(QDialog):
         self.cancel_b.clicked.connect(self.cancel_clicked)
         self.cancel_b2.clicked.connect(self.cancel_clicked)
         self.timer.timeout.connect(self.timer_timeout)
-
+        self.input_p_id.setValidator(QIntValidator())
+        self.input_p_id.textChanged[str].connect(self.text_changed)
 
     def start_timer(self):
         if self.loading:
@@ -67,7 +88,6 @@ class ButtonTestMenu(QDialog):
         self.update()
 
     def timer_timeout(self):
-
         if self.loading:
             self.countdown()
             self.update()
@@ -84,6 +104,8 @@ class ButtonTestMenu(QDialog):
 
     def agreed_clicked(self):
         if (not self.loading) & (not self.test_started):
+            self.get_p_id()
+            create_test()
             self.agree_b.hide()
             self.cancel_b.hide()
             self.cancel_b2.show()
@@ -95,43 +117,30 @@ class ButtonTestMenu(QDialog):
 
     def cancel_clicked(self):
         self.close()
-        print("click")
 
     def keyPressEvent(self, event):
         if self.test_started:
-            key = self.mapping_char(event)
+            key = mapping_char(event)
             if key.isalpha():
                 print(key)
 
-
-
     def update(self):
         if self.loading:
-            print("there")
             self.text_content = str(self.counter + 1)
         if self.test_started:
             self.text_content = "Start"
         self.test_label.setText(self.text_content)
-        # self.text_label.setStyleSheet("color: white;  background-color: black")
+        self.test_label.setStyleSheet("QLabel#test_label {color: " + self.text_color + "}")
 
+    def get_p_id(self):
+        if (not self.loading) & (not self.test_started):
+            self.p_id = self.input_p_id.text()
+            print(self.p_id)
+            self.input_p_id.hide()
+            return
 
-    def mapping_char(self, event):
-        char = QKeySequence(event.nativeVirtualKey()).toString()
-        if char in "ÀÞº":
-            mapping = {
-                "À": "Ö",
-                "Þ": "Ä",
-                "º": "Ü"
-            }
-            char = mapping.get(char)
-        return char
-
-
-
-
-
-
-
+    def text_changed(self):
+        self.agree_b.setEnabled(True)
 
     # def initUI0(self):
     #     # set the text property of the widget we are inheriting
@@ -146,7 +155,6 @@ class ButtonTestMenu(QDialog):
     #     if ev.key() == QtCore.Qt.Key_Space:
     #         self.counter += 1
     #         self.update()
-
 
     # @staticmethod
     # def filter_char(char):
