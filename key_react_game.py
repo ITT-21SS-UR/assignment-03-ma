@@ -4,6 +4,7 @@
 
 import sys
 from PyQt5 import QtGui, QtWidgets, QtCore, uic
+from PyQt5.QtGui import QKeySequence
 from PyQt5.QtWidgets import QDialog, QStackedWidget, QWidget
 from PyQt5.QtCore import QTimer,QDateTime
 
@@ -66,6 +67,7 @@ class ButtonTestMenu(QDialog):
         self.update()
 
     def timer_timeout(self):
+
         if self.loading:
             self.countdown()
             self.update()
@@ -81,18 +83,27 @@ class ButtonTestMenu(QDialog):
         self.timer.stop()
 
     def agreed_clicked(self):
-        self.agree_b.hide()
-        self.cancel_b.hide()
-        self.cancel_b2.show()
-        self.text_browser.hide()
-        self.test_label.show()
-        self.loading = True
-        self.start_timer()
-        print("click")
+        if (not self.loading) & (not self.test_started):
+            self.agree_b.hide()
+            self.cancel_b.hide()
+            self.cancel_b2.show()
+            self.text_browser.hide()
+            self.test_label.show()
+            self.loading = True
+            self.start_timer()
+            print("click")
 
     def cancel_clicked(self):
         self.close()
         print("click")
+
+    def keyPressEvent(self, event):
+        if self.test_started:
+            key = self.mapping_char(event)
+            if key.isalpha():
+                print(key)
+
+
 
     def update(self):
         if self.loading:
@@ -102,6 +113,18 @@ class ButtonTestMenu(QDialog):
             self.text_content = "Start"
         self.test_label.setText(self.text_content)
         # self.text_label.setStyleSheet("color: white;  background-color: black")
+
+
+    def mapping_char(self, event):
+        char = QKeySequence(event.nativeVirtualKey()).toString()
+        if char in "ÀÞº":
+            mapping = {
+                "À": "Ö",
+                "Þ": "Ä",
+                "º": "Ü"
+            }
+            char = mapping.get(char)
+        return char
 
 
 
