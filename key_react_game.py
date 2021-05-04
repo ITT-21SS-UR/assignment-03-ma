@@ -207,6 +207,7 @@ class ButtonTestMenu(QDialog):
         self.test_label.setText(self.text_content)
         self.test_label.setStyleSheet("QLabel#test_label {color: " + self.text_color + "}")
         if self.color_was_changed:
+            print("Hi")
             self.test.set_timestamp(self.current_repetition, 1)
             self.color_was_changed = False
 
