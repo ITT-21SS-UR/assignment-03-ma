@@ -26,6 +26,7 @@ class Test:
                              "Correct?",
                              "Timestamp(Teststart)", "Timestamp(Color)", "Timestamp(Keystroke)"]
         self.log_data = pd.DataFrame(columns=self.column_names)
+        self.currentTest = self.log_data
         self.setup_dataframe()
         print("Howdey")
         print(self.log_data)
@@ -55,10 +56,32 @@ class Test:
         print("Random", random.randrange(5, 100))
         test_palette[self.column_names[5]] = ran_time
         test_palette[self.column_names[1]] = mode
-        print(test_palette)
         if mode == "easy":
             test_palette[self.column_names[4]] = test_palette.sample(frac=1)[self.column_names[4]].values
-            print(test_palette)
+        test_palette[self.column_names[2]] = test_palette.index
+        self.currentTest = self.currentTest.append(test_palette, ignore_index=True)
+
+    def save_test(self):
+        self.log_data = self.log_data.append(self.currentTest)
+        self.log_data.to_csv(path_results, index=False)
+
+    def set_ID(self, id):
+        self.currentTest[self.column_names[0]] = str(id)
+        return
+
+    def set_timestamp(self, rep_status, case):
+        if case == 0:
+            self.currentTest[self.column_names[8]] = time.time()
+            return
+        self.currentTest.loc[rep_status, self.column_names[case+8]] = time.time()
+        print(self.currentTest)
+
+    def get_color_name(self, rep_status):
+        return self.currentTest.loc[rep_status, self.column_names[3]]
+
+    def get_hex_color(self, rep_status):
+        return self.currentTest.loc[rep_status, self.column_names[4]]
+
 
 
 def generate_table():
@@ -93,10 +116,11 @@ class ButtonTestMenu(QDialog):
         self.counter = 3
         self.text_content = ""
         self.text_color = "black"
-
+        self.current_repetition = 0
         self.p_id = 0
         self.test_started = False
         self.loading = False
+        self.keystroke_enabled = True
         self.timer = QTimer()
         self.load_menu()
         self.initUI()
@@ -140,12 +164,13 @@ class ButtonTestMenu(QDialog):
         self.loading = False
         self.cancel_b2.setEnabled(True)
         self.timer.stop()
+        self.test.set_timestamp(self.current_repetition, 0)
         print("Test started:", time.time())
 
     def agreed_clicked(self):
         if (not self.loading) & (not self.test_started):
-            self.get_p_id()
             self.test.create_test("easy")
+            self.get_p_id()
             self.agree_b.hide()
             self.cancel_b.hide()
             self.cancel_b2.show()
@@ -161,72 +186,32 @@ class ButtonTestMenu(QDialog):
     def keyPressEvent(self, event):
         if self.test_started:
             key = mapping_char(event)
+            if not self.keystroke_enabled:
+                return
             if key.isalpha():
-                print("'", key, "' clicked at:", time.time())
+                self.test.set_timestamp(self.current_repetition, 2)
+                self.keystroke_enabled = False
 
     def update(self):
         if self.loading:
             self.text_content = str(self.counter + 1)
         if self.test_started:
-            self.text_content = "Start"
+            print("let's see :D")
         self.test_label.setText(self.text_content)
         self.test_label.setStyleSheet("QLabel#test_label {color: " + self.text_color + "}")
 
     def get_p_id(self):
         if (not self.loading) & (not self.test_started):
             self.p_id = self.input_p_id.text()
-            print(self.p_id)
+            self.test.set_ID(self.p_id)
             self.input_p_id.hide()
             return
 
     def text_changed(self):
         self.agree_b.setEnabled(True)
 
-    # def initUI0(self):
-    #     # set the text property of the widget we are inheriting
-    #     self.text = "Please press 'space' repeatedly."
-    #     self.setGeometry(300, 300, 280, 170)
-    #     self.setWindowTitle('ClickRecorder')
-    #     # widget should accept focus by click and tab key
-    #     self.setFocusPolicy(QtCore.Qt.StrongFocus)
-    #     self.show()
-    #
-    # def keyPressEvent(self, ev):
-    #     if ev.key() == QtCore.Qt.Key_Space:
-    #         self.counter += 1
-    #         self.update()
-
-    # @staticmethod
-    # def filter_char(char):
-    #     sym = ["/", "*", "-", "+", ","]
-    #     if char.isnumeric():
-    #         return False
-    #     if char in sym:
-    #         return False
-    #     return True
-    #
-    # def paintEvent(self, event):
-    #     qp = QtGui.QPainter()
-    #     qp.begin(self)
-    #     self.drawText(event, qp)
-    #     self.drawRect(event, qp)
-    #     qp.end()
-    #
-    # def drawText(self, event, qp):
-    #     qp.setPen(QtGui.QColor(168, 34, 3))
-    #     qp.setFont(QtGui.QFont('Decorative', 32))
-    #     if self.counter > 0:
-    #         self.text = str(self.counter)
-    #     qp.drawText(event.rect(), QtCore.Qt.AlignCenter, self.text)
-    #
-    # def drawRect(self, event, qp):
-    #     if (self.counter % 2) == 0:
-    #         rect = QtCore.QRect(10, 10, 80, 80)
-    #         qp.setBrush(QtGui.QColor(34, 34, 200))
-    #     else:
-    #         rect = QtCore.QRect(100, 10, 80, 80)
-    #         qp.setBrush(QtGui.QColor(200, 34, 34))
-    #     qp.drawRoundedRect(rect, 10.0, 10.0)
+    def test_loop(self):
+        
 
 
 def main():
