@@ -15,6 +15,8 @@ from pathlib import Path
 url_color_csv = "color_palette.csv"
 path_results = "results.csv"
 REPETITIONS = 10
+COUNTER = 3
+DEFAULT_TEXT_COLOR = "Black"
 pd.set_option("display.max_rows", None, "display.max_columns", None)
 
 
@@ -56,7 +58,7 @@ class Test:
         print("Random", random.randrange(5, 100))
         test_palette[self.column_names[5]] = ran_time
         test_palette[self.column_names[1]] = mode
-        if mode == "easy":
+        if mode == "hard":
             test_palette[self.column_names[4]] = test_palette.sample(frac=1)[self.column_names[4]].values
         test_palette[self.column_names[2]] = test_palette.index
         self.currentTest = self.currentTest.append(test_palette, ignore_index=True)
@@ -64,9 +66,15 @@ class Test:
     def save_test(self):
         self.log_data = self.log_data.append(self.currentTest)
         self.log_data.to_csv(path_results, index=False)
+        self.currentTest = pd.DataFrame(columns=self.column_names)
 
     def set_ID(self, id):
         self.currentTest[self.column_names[0]] = str(id)
+        return
+
+    def set_pressed_key(self, rep_status, key):
+        self.currentTest.loc[rep_status, self.column_names[6]] = key
+        self.currentTest.loc[rep_status, self.column_names[7]] = (key == self.currentTest.loc[rep_status, self.column_names[3]][0].upper())
         return
 
     def set_timestamp(self, rep_status, case):
@@ -115,16 +123,17 @@ class ButtonTestMenu(QDialog):
 
     def __init__(self):
         super().__init__()
-        self.counter = 3
+        self.counter = COUNTER
         self.text_content = ""
         self.text_color = "black"
-        self.current_mode = "easy"
+        self.current_mode = DEFAULT_TEXT_COLOR
         self.current_repetition = 0
         self.p_id = 0
         self.test_started = False
         self.loading = False
         self.keystroke_enabled = True
         self.test_finished = False
+        self.color_was_changed = False
         self.timer = QTimer()
         self.load_menu()
         self.initUI()
@@ -173,6 +182,7 @@ class ButtonTestMenu(QDialog):
         self.test_updates()
 
     def agreed_clicked(self):
+
         if (not self.loading) & (not self.test_started):
             self.test.create_test(self.current_mode)
             self.get_p_id()
@@ -194,7 +204,8 @@ class ButtonTestMenu(QDialog):
             if not self.keystroke_enabled:
                 return
             if key.isalpha():
-                self.test.set_timestamp(self.current_repetition, 2)
+                self.test.set_pressed_key(self.current_repetition - 1, key)
+                self.test.set_timestamp(self.current_repetition - 1, 2)
                 self.keystroke_enabled = False
 
     def update(self):
@@ -204,6 +215,10 @@ class ButtonTestMenu(QDialog):
             print("let's see :D")
         self.test_label.setText(self.text_content)
         self.test_label.setStyleSheet("QLabel#test_label {color: " + self.text_color + "}")
+        if self.color_was_changed:
+            self.test.set_timestamp(self.current_repetition, 1)
+            self.color_was_changed = False
+
 
     def get_p_id(self):
         if (not self.loading) & (not self.test_started):
@@ -216,22 +231,36 @@ class ButtonTestMenu(QDialog):
         self.agree_b.setEnabled(True)
 
     def test_updates(self):
-        # if self.self.current_repetition == 10:
-        #     if self.current_mode == "easy":
-        #         self.test.save_test()
-        #         self.test.create_test("hard")
-        #         self.counter = 3
-        #         self.countdown()
-        #     else:
-        #         return
-        # if
+        if self.current_repetition == 10:
+            self.test.save_test()
+            self.text_color = DEFAULT_TEXT_COLOR
+            if self.current_mode == "easy":
+                self.current_repetition = 0
+                self.current_mode = "hard"
+                self.test.create_test("hard")
+                self.counter = COUNTER
+                self.loading = True
+                self.test_started = False
+                self.start_timer()
+                return
+            self.end_test()
+            return
         self.timer.singleShot(self.test.get_delay_time(self.current_repetition), lambda: self.test_updates())
         self.keystroke_enabled = True
         self.text_content = self.test.get_color_name(self.current_repetition)
         self.text_color = self.test.get_hex_color(self.current_repetition)
-        self.current_repetition = self.current_repetition + 1
+        self.color_was_changed = True
         print("Test started:", time.time())
         self.update()
+        self.current_repetition = self.current_repetition + 1
+
+    def end_test(self):
+        self.text_content = "The End"
+        self.cancel_b2.setText("Close")
+        self.update()
+        # self.cancel_b2.hide()
+        # self.cancel_b.show()
+
 
 
 def main():
