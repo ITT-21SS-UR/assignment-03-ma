@@ -16,7 +16,7 @@ url_color_csv = "color_palette.csv"
 path_results = "results.csv"
 REPETITIONS = 10
 COUNTER = 3
-DEFAULT_TEXT_COLOR = "Black"
+DEFAULT_TEXT_COLOR = "black"
 pd.set_option("display.max_rows", None, "display.max_columns", None)
 
 
@@ -30,8 +30,6 @@ class Test:
         self.log_data = pd.DataFrame(columns=self.column_names)
         self.currentTest = self.log_data
         self.setup_dataframe()
-        print("Howdey")
-        print(self.log_data)
 
     def setup_dataframe(self):
         global path_results
@@ -54,8 +52,6 @@ class Test:
         ran_time = [None] * 10
         for i in range(0, REPETITIONS):
             ran_time[i] = random.randrange(5, 100) * 100
-            print("here", ran_time[i])
-        print("Random", random.randrange(5, 100))
         test_palette[self.column_names[5]] = ran_time
         test_palette[self.column_names[1]] = mode
         if mode == "hard":
@@ -82,7 +78,6 @@ class Test:
             self.currentTest[self.column_names[8]] = time.time()
             return
         self.currentTest.loc[rep_status, self.column_names[case + 8]] = time.time()
-        print(self.currentTest)
 
     def get_color_name(self, rep_status):
         return self.currentTest.loc[rep_status, self.column_names[3]]
@@ -125,8 +120,8 @@ class ButtonTestMenu(QDialog):
         super().__init__()
         self.counter = COUNTER
         self.text_content = ""
-        self.text_color = "black"
-        self.current_mode = DEFAULT_TEXT_COLOR
+        self.text_color = DEFAULT_TEXT_COLOR
+        self.current_mode = "easy"
         self.current_repetition = 0
         self.p_id = 0
         self.test_started = False
@@ -146,7 +141,7 @@ class ButtonTestMenu(QDialog):
         self.cancel_b2.hide()
         self.setWindowTitle('reaction_game')
         self.resize(800, 600)
-        print("here")
+
 
     def load_menu(self):
         uic.loadUi("reaction_menu.ui", self)
@@ -178,7 +173,6 @@ class ButtonTestMenu(QDialog):
         self.cancel_b2.setEnabled(True)
         self.timer.stop()
         self.test.set_timestamp(self.current_repetition, 0)
-        print("Test started:", time.time())
         self.test_updates()
 
     def agreed_clicked(self):
@@ -193,7 +187,6 @@ class ButtonTestMenu(QDialog):
             self.test_label.show()
             self.loading = True
             self.start_timer()
-            print("click")
 
     def cancel_clicked(self):
         self.close()
@@ -211,8 +204,6 @@ class ButtonTestMenu(QDialog):
     def update(self):
         if self.loading:
             self.text_content = str(self.counter + 1)
-        if self.test_started:
-            print("let's see :D")
         self.test_label.setText(self.text_content)
         self.test_label.setStyleSheet("QLabel#test_label {color: " + self.text_color + "}")
         if self.color_was_changed:
@@ -250,7 +241,6 @@ class ButtonTestMenu(QDialog):
         self.text_content = self.test.get_color_name(self.current_repetition)
         self.text_color = self.test.get_hex_color(self.current_repetition)
         self.color_was_changed = True
-        print("Test started:", time.time())
         self.update()
         self.current_repetition = self.current_repetition + 1
 
