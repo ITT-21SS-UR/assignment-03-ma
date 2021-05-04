@@ -73,7 +73,7 @@ class Test:
         if case == 0:
             self.currentTest[self.column_names[8]] = time.time()
             return
-        self.currentTest.loc[rep_status, self.column_names[case+8]] = time.time()
+        self.currentTest.loc[rep_status, self.column_names[case + 8]] = time.time()
         print(self.currentTest)
 
     def get_color_name(self, rep_status):
@@ -82,6 +82,8 @@ class Test:
     def get_hex_color(self, rep_status):
         return self.currentTest.loc[rep_status, self.column_names[4]]
 
+    def get_delay_time(self, rep_status):
+        return self.currentTest.loc[rep_status, self.column_names[5]]
 
 
 def generate_table():
@@ -116,11 +118,13 @@ class ButtonTestMenu(QDialog):
         self.counter = 3
         self.text_content = ""
         self.text_color = "black"
+        self.current_mode = "easy"
         self.current_repetition = 0
         self.p_id = 0
         self.test_started = False
         self.loading = False
         self.keystroke_enabled = True
+        self.test_finished = False
         self.timer = QTimer()
         self.load_menu()
         self.initUI()
@@ -166,10 +170,11 @@ class ButtonTestMenu(QDialog):
         self.timer.stop()
         self.test.set_timestamp(self.current_repetition, 0)
         print("Test started:", time.time())
+        self.test_updates()
 
     def agreed_clicked(self):
         if (not self.loading) & (not self.test_started):
-            self.test.create_test("easy")
+            self.test.create_test(self.current_mode)
             self.get_p_id()
             self.agree_b.hide()
             self.cancel_b.hide()
@@ -210,8 +215,23 @@ class ButtonTestMenu(QDialog):
     def text_changed(self):
         self.agree_b.setEnabled(True)
 
-    def test_loop(self):
-        
+    def test_updates(self):
+        # if self.self.current_repetition == 10:
+        #     if self.current_mode == "easy":
+        #         self.test.save_test()
+        #         self.test.create_test("hard")
+        #         self.counter = 3
+        #         self.countdown()
+        #     else:
+        #         return
+        # if
+        self.timer.singleShot(self.test.get_delay_time(self.current_repetition), lambda: self.test_updates())
+        self.keystroke_enabled = True
+        self.text_content = self.test.get_color_name(self.current_repetition)
+        self.text_color = self.test.get_hex_color(self.current_repetition)
+        self.current_repetition = self.current_repetition + 1
+        print("Test started:", time.time())
+        self.update()
 
 
 def main():
