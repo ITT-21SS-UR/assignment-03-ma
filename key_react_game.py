@@ -230,6 +230,7 @@ class ButtonTestMenu(QDialog):
                 self.current_repetition = 0
                 self.current_mode = "hard"
                 self.test.create_test("hard")
+                self.test.set_ID(self.p_id)
                 self.counter = COUNTER
                 self.loading = True
                 self.test_started = False
