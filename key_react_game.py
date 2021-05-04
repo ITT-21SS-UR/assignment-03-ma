@@ -15,7 +15,6 @@ from pathlib import Path
 url_color_csv = "color_palette.csv"
 path_results = "results.csv"
 REPETITIONS = 10
-color_palette = pd.read_csv(url_color_csv)
 pd.set_option("display.max_rows", None, "display.max_columns", None)
 
 
@@ -29,9 +28,10 @@ class Test:
         self.log_data = pd.DataFrame(columns=self.column_names)
         self.setup_dataframe()
         print("Howdey")
-        print(self.column_names[2])
+        print(self.log_data)
 
     def setup_dataframe(self):
+        global path_results
         file = Path(path_results)
         if file.is_file():
             check_db = pd.read_csv(path_results)
@@ -39,6 +39,10 @@ class Test:
             if data_top == self.column_names:
                 self.log_data = check_db
                 return
+            path_results = rename_filepath(path_results)
+            self.setup_dataframe()
+            return
+        self.log_data.to_csv(path_results, index=False)
 
     def create_test(self, mode):
         test_palette = self.color_palette.sample(n=REPETITIONS)
@@ -59,6 +63,11 @@ class Test:
 
 def generate_table():
     return
+
+
+def rename_filepath(fpath):
+    fpath = fpath.split(".")
+    return fpath[0] + "~." + fpath[1]
 
 
 def mapping_char(event):
