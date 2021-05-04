@@ -10,22 +10,51 @@ from PyQt5.QtCore import QTimer, QDateTime
 import random
 import time
 import pandas as pd
+from pathlib import Path
 
-url_color_csv = "color_palatt_(ral_standard).csv"
-color_palette = None
+url_color_csv = "color_palette.csv"
+path_results = "results.csv"
+REPETITIONS = 10
+color_palette = pd.read_csv(url_color_csv)
+pd.set_option("display.max_rows", None, "display.max_columns", None)
 
 
-# class Test():
-#     def __init__(self):
-#         self.color_palette=None
-#         self.
+class Test:
+    def __init__(self):
+        self.color_palette = pd.read_csv(url_color_csv)
+        self.participant_ID = None
+        self.column_names = ["ID", "Condition", "Repetition", "Color", "HEX", "Delaytime(ms)", "Pressed Key",
+                             "Correct?",
+                             "Timestamp(Teststart)", "Timestamp(Color)", "Timestamp(Keystroke)"]
+        self.log_data = pd.DataFrame(columns=self.column_names)
+        self.setup_dataframe()
+        print("Howdey")
+        print(self.column_names[2])
 
-def create_test():
-    df = pd.read_csv(url_color_csv, index_col=3)
-    pd.set_option("display.max_rows", None, "display.max_columns", None)
-    df.head()
-    print(df)
-    print(random.randint(5, 100))
+    def setup_dataframe(self):
+        file = Path(path_results)
+        if file.is_file():
+            check_db = pd.read_csv(path_results)
+            data_top = list(check_db)
+            if data_top == self.column_names:
+                self.log_data = check_db
+                return
+
+    def create_test(self, mode):
+        test_palette = self.color_palette.sample(n=REPETITIONS)
+        test_palette = test_palette.reset_index(drop=True)
+        test_palette.index.name = self.column_names[2]
+        ran_time = [None] * 10
+        for i in range(0, REPETITIONS):
+            ran_time[i] = random.randrange(5, 100) * 100
+            print("here", ran_time[i])
+        print("Random", random.randrange(5, 100))
+        test_palette[self.column_names[5]] = ran_time
+        test_palette[self.column_names[1]] = mode
+        print(test_palette)
+        if mode == "easy":
+            test_palette[self.column_names[4]] = test_palette.sample(frac=1)[self.column_names[4]].values
+            print(test_palette)
 
 
 def generate_table():
@@ -54,7 +83,7 @@ class ButtonTestMenu(QDialog):
         super().__init__()
         self.counter = 3
         self.text_content = ""
-        self.text_color = "red"
+        self.text_color = "black"
 
         self.p_id = 0
         self.test_started = False
@@ -62,6 +91,7 @@ class ButtonTestMenu(QDialog):
         self.timer = QTimer()
         self.load_menu()
         self.initUI()
+        self.test = Test()
 
     def initUI(self):
         self.test_label.hide()
@@ -101,11 +131,12 @@ class ButtonTestMenu(QDialog):
         self.loading = False
         self.cancel_b2.setEnabled(True)
         self.timer.stop()
+        print("Test started:", time.time())
 
     def agreed_clicked(self):
         if (not self.loading) & (not self.test_started):
             self.get_p_id()
-            create_test()
+            self.test.create_test("easy")
             self.agree_b.hide()
             self.cancel_b.hide()
             self.cancel_b2.show()
@@ -122,7 +153,7 @@ class ButtonTestMenu(QDialog):
         if self.test_started:
             key = mapping_char(event)
             if key.isalpha():
-                print(key)
+                print("'", key, "' clicked at:", time.time())
 
     def update(self):
         if self.loading:
