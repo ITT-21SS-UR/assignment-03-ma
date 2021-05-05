@@ -22,8 +22,12 @@ DEFAULT_TEXT_COLOR = "black"
 pd.set_option("display.max_rows", None, "display.max_columns", None)
 
 
-class Test:
+# ---> Default Variables
+
+
+class Test:  # Test class which ist used by the Main Class: "ButtonTestMenu"
     def __init__(self):
+        # Setting the main components of the csv-table up...
         self.color_palette = pd.read_csv(url_color_csv)
         self.participant_ID = None
         self.column_names = ["ID", "Condition", "Repetition", "Color", "HEX", "Delaytime(ms)", "Pressed Key",
@@ -34,9 +38,11 @@ class Test:
         self.setup_dataframe()
 
     def setup_dataframe(self):
+        # saves testsetup in "results.csv"
         global path_results
         file = Path(path_results)
         if file.is_file():
+            # in case nothing will be overwritten, only added
             check_db = pd.read_csv(path_results)
             data_top = list(check_db)
             if data_top == self.column_names:
@@ -48,6 +54,7 @@ class Test:
         self.log_data.to_csv(path_results, index=False)
 
     def create_test(self, mode):
+        # creates test on command and fills the table
         test_palette = self.color_palette.sample(n=REPETITIONS)
         test_palette = test_palette.reset_index(drop=True)
         test_palette.index.name = self.column_names[2]
@@ -62,10 +69,13 @@ class Test:
         self.currentTest = self.currentTest.append(test_palette, ignore_index=True)
 
     def save_test(self):
+        # saves table to "results.csv"
         self.log_data = self.log_data.append(self.currentTest)
         self.log_data.to_csv(path_results, index=False)
         print(self.currentTest)
         self.currentTest = pd.DataFrame(columns=self.column_names)
+
+    # getter and setter:
 
     def set_ID(self, id):
         self.currentTest[self.column_names[0]] = str(id)
@@ -74,7 +84,7 @@ class Test:
     def set_pressed_key(self, rep_status, key):
         self.currentTest.loc[rep_status, self.column_names[6]] = key
         self.currentTest.loc[rep_status, self.column_names[7]] = (
-                    key == self.currentTest.loc[rep_status, self.column_names[3]][0].upper())
+                key == self.currentTest.loc[rep_status, self.column_names[3]][0].upper())
         return
 
     def set_timestamp(self, rep_status, case):
@@ -82,7 +92,6 @@ class Test:
             self.currentTest[self.column_names[8]] = time.time()
             return
         self.currentTest.loc[rep_status, self.column_names[case + 8]] = time.time()
-
 
     def get_color_name(self, rep_status):
         return self.currentTest.loc[rep_status, self.column_names[3]]
@@ -92,13 +101,6 @@ class Test:
 
     def get_delay_time(self, rep_status):
         return self.currentTest.loc[rep_status, self.column_names[5]]
-
-    # def id_check(self, id):
-    #     return id in self.log_data.Series(list(self.column_names[0]))
-
-
-def generate_table():
-    return
 
 
 def rename_filepath(fpath):
@@ -119,13 +121,12 @@ def mapping_char(event):
 
 
 class ButtonTestMenu(QDialog):
-    """ Counts how often the 'space' key is pressed and displays the count.
-
-    Every time the 'space' key is pressed, a visual indicator is toggled, too.
+    """ Main class, where EVERYTHING happens
     """
 
     def __init__(self):
         super().__init__()
+        # Setting up main control variables
         self.counter = COUNTER
         self.text_content = ""
         self.text_color = DEFAULT_TEXT_COLOR
@@ -137,13 +138,13 @@ class ButtonTestMenu(QDialog):
         self.keystroke_enabled = True
         self.test_finished = False
         self.color_was_changed = False
-
         self.timer = QTimer()
         self.load_menu()
         self.initUI()
         self.test = Test()
 
     def initUI(self):
+        # initialize important ui-components
         self.test_label.hide()
         self.cancel_b2.setEnabled(False)
         self.agree_b.setEnabled(False)
@@ -152,6 +153,7 @@ class ButtonTestMenu(QDialog):
         self.resize(800, 600)
 
     def load_menu(self):
+        # initialize "reaction_menu.ui" (it was planed having another ui...but that never happened...)
         uic.loadUi("reaction_menu.ui", self)
         self.agree_b.clicked.connect(self.agreed_clicked)
         self.cancel_b.clicked.connect(self.cancel_clicked)
@@ -161,18 +163,21 @@ class ButtonTestMenu(QDialog):
         self.input_p_id.textChanged[str].connect(self.text_changed)
 
     def start_timer(self):
+        # initialize Qtimer
         if self.loading:
             self.timer.start(1000)
             self.countdown()
         self.update()
 
     def timer_timeout(self):
+        # updating on timeouts...
         if self.loading:
             self.countdown()
             self.update()
             return
 
     def countdown(self):
+        # setting countdown up
         if self.counter > 0:
             self.counter = self.counter - 1
             return
@@ -183,8 +188,9 @@ class ButtonTestMenu(QDialog):
         self.test.set_timestamp(self.current_repetition, 0)
         self.test_updates()
 
-    def agreed_clicked(self):
+    # handle button/key listener:
 
+    def agreed_clicked(self):
         if (not self.loading) & (not self.test_started):
             self.test.create_test(self.current_mode)
             self.get_p_id()
@@ -210,6 +216,7 @@ class ButtonTestMenu(QDialog):
                 self.keystroke_enabled = False
 
     def update(self):
+        # updates UI
         if self.loading:
             self.text_content = str(self.counter + 1)
         self.test_label.setText(self.text_content)
@@ -230,6 +237,7 @@ class ButtonTestMenu(QDialog):
         self.agree_b.setEnabled(True)
 
     def test_updates(self):
+        # updates for communication in test class
         if self.current_repetition == 10:
             self.test.save_test()
             self.text_color = DEFAULT_TEXT_COLOR
@@ -257,8 +265,6 @@ class ButtonTestMenu(QDialog):
         self.text_content = "The End"
         self.cancel_b2.setText("Close")
         self.update()
-        # self.cancel_b2.hide()
-        # self.cancel_b.show()
 
 
 def main():
