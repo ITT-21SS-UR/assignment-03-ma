@@ -16,6 +16,8 @@ url_color_csv = "color_palette.csv"
 path_results = "results.csv"
 REPETITIONS = 10
 COUNTER = 3
+MIN_APPEARENCE_IN_SECONDS = 5000
+MAX_APPEARENCE_IN_SECONDS = 10000
 DEFAULT_TEXT_COLOR = "black"
 pd.set_option("display.max_rows", None, "display.max_columns", None)
 
@@ -51,7 +53,7 @@ class Test:
         test_palette.index.name = self.column_names[2]
         ran_time = [None] * 10
         for i in range(0, REPETITIONS):
-            ran_time[i] = random.randrange(5, 100) * 100
+            ran_time[i] = random.randrange(MIN_APPEARENCE_IN_SECONDS, MAX_APPEARENCE_IN_SECONDS)
         test_palette[self.column_names[5]] = ran_time
         test_palette[self.column_names[1]] = mode
         if mode == "hard":
@@ -62,6 +64,7 @@ class Test:
     def save_test(self):
         self.log_data = self.log_data.append(self.currentTest)
         self.log_data.to_csv(path_results, index=False)
+        print(self.currentTest)
         self.currentTest = pd.DataFrame(columns=self.column_names)
 
     def set_ID(self, id):
@@ -70,7 +73,8 @@ class Test:
 
     def set_pressed_key(self, rep_status, key):
         self.currentTest.loc[rep_status, self.column_names[6]] = key
-        self.currentTest.loc[rep_status, self.column_names[7]] = (key == self.currentTest.loc[rep_status, self.column_names[3]][0].upper())
+        self.currentTest.loc[rep_status, self.column_names[7]] = (
+                    key == self.currentTest.loc[rep_status, self.column_names[3]][0].upper())
         return
 
     def set_timestamp(self, rep_status, case):
@@ -78,6 +82,7 @@ class Test:
             self.currentTest[self.column_names[8]] = time.time()
             return
         self.currentTest.loc[rep_status, self.column_names[case + 8]] = time.time()
+
 
     def get_color_name(self, rep_status):
         return self.currentTest.loc[rep_status, self.column_names[3]]
@@ -87,6 +92,9 @@ class Test:
 
     def get_delay_time(self, rep_status):
         return self.currentTest.loc[rep_status, self.column_names[5]]
+
+    # def id_check(self, id):
+    #     return id in self.log_data.Series(list(self.column_names[0]))
 
 
 def generate_table():
@@ -129,6 +137,7 @@ class ButtonTestMenu(QDialog):
         self.keystroke_enabled = True
         self.test_finished = False
         self.color_was_changed = False
+
         self.timer = QTimer()
         self.load_menu()
         self.initUI()
@@ -141,7 +150,6 @@ class ButtonTestMenu(QDialog):
         self.cancel_b2.hide()
         self.setWindowTitle('reaction_game')
         self.resize(800, 600)
-
 
     def load_menu(self):
         uic.loadUi("reaction_menu.ui", self)
@@ -207,10 +215,9 @@ class ButtonTestMenu(QDialog):
         self.test_label.setText(self.text_content)
         self.test_label.setStyleSheet("QLabel#test_label {color: " + self.text_color + "}")
         if self.color_was_changed:
-            print("Hi")
+            print("color changed")
             self.test.set_timestamp(self.current_repetition, 1)
             self.color_was_changed = False
-
 
     def get_p_id(self):
         if (not self.loading) & (not self.test_started):
@@ -254,10 +261,8 @@ class ButtonTestMenu(QDialog):
         # self.cancel_b.show()
 
 
-
 def main():
     app = QtWidgets.QApplication(sys.argv)
-    # variable is never used, class automatically registers itself for Qt main loop:
     win = ButtonTestMenu()
 
     win.show()
